@@ -7,6 +7,11 @@
     <title>Login | SACCO Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        :root {
+            --sacco-green: #198754; /* Bootstrap's success green */
+            --sacco-green-dark: #146c43;
+            --sacco-green-light: #d1e7dd;
+        }
         body {
             background-color: #f8f9fa;
         }
@@ -15,13 +20,34 @@
             margin: 5% auto;
             padding: 2rem;
             background: #fff;
-            border-radius: 8px;
+            border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border-top: 4px solid var(--sacco-green);
         }
         .brand {
+            font-weight: 700;
+            font-size: 1.6rem;
+            color: var(--sacco-green);
+            letter-spacing: 0.5px;
+        }
+        .btn-sacco {
+            background-color: var(--sacco-green);
+            border-color: var(--sacco-green);
             font-weight: 600;
-            font-size: 1.5rem;
-            color: #0d6efd;
+            padding: 0.6rem;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-sacco:hover {
+            background-color: var(--sacco-green-dark);
+            border-color: var(--sacco-green-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
+        }
+        a {
+            color: var(--sacco-green);
+        }
+        a:hover {
+            color: var(--sacco-green-dark);
         }
     </style>
 </head>
@@ -65,7 +91,7 @@
             {% endif %}
         </div>
 
-        <button type="submit" class="btn btn-primary w-100">Login</button>
+        <button type="submit" class="btn btn-sacco w-100 btn-lg">Login</button>
     </form>
 
     <div class="mt-3 text-center">
