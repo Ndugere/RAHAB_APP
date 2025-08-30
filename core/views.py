@@ -4,11 +4,35 @@ from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from .models import Account, JournalEntry
 from .forms import AccountForm, JournalEntryForm, JournalLineFormSet
-
+from django.urls import reverse_lazy
+from django.contrib.auth.views import LoginView
 
 # -----------------------------
 # ACCOUNT VIEWS
 # -----------------------------
+
+class MyLoginView(LoginView):
+    template_name = 'core/login.html'
+    redirect_authenticated_user = True  # If already logged in, go to dashboard
+
+    def get_success_url(self):
+        # Always send to dashboard after login
+        return reverse_lazy('dashboard')
+    
+@login_required
+def dashboard(request):
+    # Example data for the dashboard
+    total_accounts = Account.objects.count()
+    total_entries = JournalEntry.objects.count()
+    recent_entries = JournalEntry.objects.order_by('-date')[:5]
+
+    context = {
+        'total_accounts': total_accounts,
+        'total_entries': total_entries,
+        'recent_entries': recent_entries,
+    }
+    return render(request, 'core/dashboard.html', context)
+
 
 @login_required
 def account_list(request):
