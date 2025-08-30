@@ -1,0 +1,16 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-3 text-danger">Delete Loan</h2>
+    <div class="alert alert-warning shadow-sm">
+        Are you sure you want to delete <strong>Loan #{{ loan.id }}</strong> for
+        <strong>{{ loan.member.full_name }}</strong>?
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        <a href="{% url 'loan_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

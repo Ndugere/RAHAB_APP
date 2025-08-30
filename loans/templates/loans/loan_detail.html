@@ -1,0 +1,20 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-3">Loan #{{ loan.id }}</h2>
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body">
+            <p><strong>Member:</strong> {{ loan.member.full_name }}</p>
+            <p><strong>Product:</strong> {{ loan.product.name }}</p>
+            <p><strong>Principal:</strong> {{ loan.principal }}</p>
+            <p><strong>Annual Rate:</strong> {{ loan.annual_rate }}%</p>
+            <p><strong>Interest Method:</strong> {{ loan.get_interest_method_display }}</p>
+            <p><strong>Disbursed On:</strong> {{ loan.disbursed_on|date:"M d, Y" }}</p>
+            <p><strong>Tenor:</strong> {{ loan.tenor_months }} months</p>
+            <p><strong>Status:</strong> {{ loan.get_status_display }}</p>
+        </div>
+    </div>
+    <a href="{% url 'loan_list' %}" class="btn btn-success">Back to Loans</a>
+</div>
+{% endblock %}

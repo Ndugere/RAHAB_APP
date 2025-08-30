@@ -6,4 +6,12 @@ urlpatterns = [
     path("products/new/", views.loanproduct_create, name="loanproduct_create"),
     path("<int:pk>/edit/", views.loanproduct_edit, name="loanproduct_edit"),
     path("<int:pk>/delete/", views.loanproduct_delete, name="loanproduct_delete"),
+
+    path("loans/", views.loan_list, name="loan_list"),
+    path("loans/new/", views.loan_create, name="loan_create"),
+    path("loans/<int:pk>/", views.loan_detail, name="loan_detail"),
+    path("loans/<int:pk>/edit/", views.loan_update, name="loan_update"),
+    path("loans/<int:pk>/delete/", views.loan_delete, name="loan_delete"),
+
+
 ]
