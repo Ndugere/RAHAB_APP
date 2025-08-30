@@ -1,5 +1,6 @@
 from django import forms
-from .models import Account, ReportTag
+from django.forms import inlineformset_factory
+from .models import Account, ReportTag, JournalEntry, JournalLine
 
 class AccountForm(forms.ModelForm):
     class Meta:
@@ -39,3 +40,31 @@ class AccountForm(forms.ModelForm):
             "parent": "Select a parent account if applicable.",
             "report_tag": "Used to classify accounts for financial reporting."
         }
+
+class JournalEntryForm(forms.ModelForm):
+    class Meta:
+        model = JournalEntry
+        fields = ["date", "memo", "posted"]
+
+class JournalLineForm(forms.ModelForm):
+    class Meta:
+        model = JournalLine
+        fields = ["account", "debit", "credit"]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        debit = cleaned_data.get("debit") or 0
+        credit = cleaned_data.get("credit") or 0
+        if debit > 0 and credit > 0:
+            raise forms.ValidationError("A line cannot have both debit and credit amounts.")
+        if debit == 0 and credit == 0:
+            raise forms.ValidationError("A line must have either a debit or a credit amount.")
+        return cleaned_data
+
+JournalLineFormSet = inlineformset_factory(
+    JournalEntry,
+    JournalLine,
+    form=JournalLineForm,
+    extra=2,
+    can_delete=True
+)
