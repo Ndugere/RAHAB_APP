@@ -1,6 +1,7 @@
 # core/models.py
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -49,6 +50,7 @@ class Account(models.Model):
 class JournalEntry(models.Model):
     date = models.DateField()
     memo = models.CharField(max_length=255, blank=True)
+    reference = models.CharField(max_length=50, blank=True)
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     posted = models.BooleanField(default=True)  # allow draft entries if needed
     created_at = models.DateTimeField(auto_now_add=True)
@@ -67,11 +69,25 @@ class JournalLine(models.Model):
 
 # members/models.py
 class Member(models.Model):
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
+    STATUS_CHOICES = [(ACTIVE, "Active"), (INACTIVE, "Inactive")]
+
     member_no = models.CharField(max_length=30, unique=True)
     full_name = models.CharField(max_length=120)
     id_number = models.CharField(max_length=30, blank=True)
     phone = models.CharField(max_length=30, blank=True)
+    email = models.EmailField(blank=True)
+    address = models.CharField(max_length=255, blank=True)
     joined_on = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=ACTIVE)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+
+    def __str__(self):
+        return f"{self.member_no} - {self.full_name}"
+
 
 # loans/models.py
 class Loan(models.Model):

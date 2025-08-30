@@ -3,53 +3,83 @@
 {% block title %}Dashboard | SACCO Management{% endblock %}
 
 {% block content %}
-<h1 class="mb-4">Dashboard</h1>
+<div class="container-fluid py-4">
+    <h1 class="mb-4 fw-bold text-dark">Dashboard</h1>
 
-<div class="row g-4">
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-body text-center">
-                <h5 class="card-title text-muted">Total Accounts</h5>
-                <p class="display-6 fw-bold">{{ total_accounts }}</p>
+    <!-- KPI Cards -->
+    <div class="row g-4">
+        <!-- Total Accounts -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <h6 class="card-subtitle text-uppercase text-muted mb-2">Total Accounts</h6>
+                    <p class="display-5 fw-bold text-dark mb-0">{{ total_accounts }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Journal Entries -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <h6 class="card-subtitle text-uppercase text-muted mb-2">Total Journal Entries</h6>
+                    <p class="display-5 fw-bold text-dark mb-0">{{ total_entries }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Journal Entries Actions -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center d-flex flex-column justify-content-center">
+                    <h6 class="card-subtitle text-uppercase text-muted mb-3">Manage Entries</h6>
+                    <div class="mb-3">
+                        <span class="display-6 fw-bold text-dark">{{ total_entries }}</span>
+                    </div>
+                    <div class="d-flex justify-content-center gap-2">
+                        <a href="{% url 'journal_entry_list' %}" class="btn btn-outline-dark btn-sm px-3">View All</a>
+                        <a href="{% url 'journal_entry_create' %}" class="btn btn-success btn-sm px-3">+ New Entry</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-body text-center">
-                <h5 class="card-title text-muted">Total Journal Entries</h5>
-                <p class="display-6 fw-bold">{{ total_entries }}</p>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Recent Entries -->
-<div class="card mt-5 shadow-sm border-0">
-    <div class="card-header bg-white fw-bold">Recent Journal Entries</div>
-    <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Date</th>
-                    <th>Memo</th>
-                    <th>Posted</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for entry in recent_entries %}
-                <tr>
-                    <td>{{ entry.date }}</td>
-                    <td>{{ entry.memo }}</td>
-                    <td>{{ entry.posted|yesno:"Yes,No" }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="3" class="text-center text-muted py-3">No entries yet.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- Recent Entries Table -->
+    <div class="card mt-5 shadow-sm border-0">
+        <div class="card-header bg-white fw-bold py-3 border-0">
+            Recent Journal Entries
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">Date</th>
+                        <th scope="col">Memo</th>
+                        <th scope="col">Posted</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in recent_entries %}
+                    <tr>
+                        <td>{{ entry.date }}</td>
+                        <td>{{ entry.memo }}</td>
+                        <td>
+                            {% if entry.posted %}
+                                <span class="badge bg-success">Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-4">No entries yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}

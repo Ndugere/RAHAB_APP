@@ -1,0 +1,18 @@
+{% extends "core/base.html" %}
+{% block content %}
+<div class="container flex-grow-1">
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Delete Journal Entry</h5>
+        </div>
+        <div class="card-body">
+            <p>Are you sure you want to delete the journal entry <strong>{{ entry.reference }}</strong> dated <strong>{{ entry.date }}</strong>?</p>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                <a href="{% url 'journal_entry_list' %}" class="btn btn-outline-dark">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

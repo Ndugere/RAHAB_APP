@@ -1,0 +1,120 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">
+        {% if form.instance.pk %}
+            Edit Journal Entry
+        {% else %}
+            New Journal Entry
+        {% endif %}
+    </h2>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        <!-- Top-level Journal Entry fields -->
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label for="{{ form.date.id_for_label }}" class="form-label">{{ form.date.label }}</label>
+                {{ form.date }}
+                {% for error in form.date.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="col-md-3">
+                <label for="{{ form.reference.id_for_label }}" class="form-label">{{ form.reference.label }}</label>
+                {{ form.reference }}
+                {% for error in form.reference.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="col-md-4">
+                <label for="{{ form.memo.id_for_label }}" class="form-label">{{ form.memo.label }}</label>
+                {{ form.memo }}
+                {% for error in form.memo.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="col-md-2 d-flex align-items-center">
+                <div class="form-check mt-4">
+                    {{ form.posted }}
+                    <label class="form-check-label" for="{{ form.posted.id_for_label }}">
+                        {{ form.posted.label }}
+                    </label>
+                </div>
+                {% for error in form.posted.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Journal Lines Table -->
+        <h5 class="mt-4">Journal Lines</h5>
+        {{ formset.management_form }}
+        <table class="table table-bordered align-middle">
+            <thead class="table-agri text-white">
+                <tr>
+                    <th style="width: 40%;">Account</th>
+                    <th style="width: 20%;" class="text-end">Debit</th>
+                    <th style="width: 20%;" class="text-end">Credit</th>
+                    <th style="width: 10%;">Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for line_form in formset %}
+                    <tr>
+                        <td>
+                            {{ line_form.account }}
+                            {% for error in line_form.account.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {{ line_form.debit }}
+                            {% for error in line_form.debit.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {{ line_form.credit }}
+                            {% for error in line_form.credit.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </td>
+                        <td class="text-center">
+                            {% if line_form.DELETE %}
+                                {{ line_form.DELETE }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Form Actions -->
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success">Save Entry</button>
+            <a href="{% url 'journal_entry_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+/* Agricultural green table header */
+.table-agri {
+    background-color: #388e3c; /* lighter green */
+}
+
+/* Make "Mark as posted" checkbox green */
+.form-check-input:checked {
+    background-color: #28a745; /* Bootstrap success green */
+    border-color: #28a745;
+}
+.form-check-input:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
+}
+</style>
+{% endblock %}

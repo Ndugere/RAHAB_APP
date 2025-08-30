@@ -2,10 +2,12 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
-from .models import Account, JournalEntry
-from .forms import AccountForm, JournalEntryForm, JournalLineFormSet
+from .models import Account, JournalEntry, Member
+from .forms import AccountForm, JournalEntryForm, JournalLineFormSet, MemberForm
 from django.urls import reverse_lazy
 from django.contrib.auth.views import LoginView
+from django.db.models import Q
+
 
 # -----------------------------
 # ACCOUNT VIEWS
@@ -85,7 +87,7 @@ def journal_entry_create(request):
         formset = JournalLineFormSet(request.POST)
 
         if form.is_valid() and formset.is_valid():
-            # Ignore deleted rows when summing
+            # Sum only non-deleted lines
             total_debit = sum(
                 (f.cleaned_data.get("debit") or 0)
                 for f in formset
@@ -107,11 +109,20 @@ def journal_entry_create(request):
                 formset.save()
                 messages.success(request, "✅ Journal entry created successfully.")
                 return redirect("journal_entry_list")
+        else:
+            # Show form and formset errors in console for debugging
+            print("Form errors:", form.errors)
+            print("Formset errors:", formset.errors)
+
     else:
         form = JournalEntryForm()
         formset = JournalLineFormSet()
 
-    return render(request, "core/journal_entry_form.html", {"form": form, "formset": formset})
+    return render(
+        request,
+        "core/journal_entry_form.html",
+        {"form": form, "formset": formset}
+    )
 
 
 @login_required
@@ -142,11 +153,20 @@ def journal_entry_edit(request, pk):
                 formset.save()
                 messages.success(request, "✅ Journal entry updated successfully.")
                 return redirect("journal_entry_list")
+        else:
+            print("Form errors:", form.errors)
+            print("Formset errors:", formset.errors)
+
     else:
         form = JournalEntryForm(instance=entry)
         formset = JournalLineFormSet(instance=entry)
 
-    return render(request, "core/journal_entry_form.html", {"form": form, "formset": formset})
+    return render(
+        request,
+        "core/journal_entry_form.html",
+        {"form": form, "formset": formset}
+    )
+
 
 
 @login_required
@@ -157,3 +177,72 @@ def journal_entry_delete(request, pk):
         messages.success(request, "🗑️ Journal entry deleted.")
         return redirect("journal_entry_list")
     return render(request, "core/journal_entry_confirm_delete.html", {"entry": entry})
+
+
+
+# -----------------------------
+# MEMBER VIEWS
+# -----------------------------
+
+@login_required
+def member_list(request):
+    members = Member.objects.all().order_by("member_no")
+    search = request.GET.get("search", "").strip()
+    status = request.GET.get("status", "").strip()
+
+    if search:
+        members = members.filter(
+            Q(member_no__icontains=search) |
+            Q(full_name__icontains=search) |
+            Q(phone__icontains=search) |
+            Q(email__icontains=search)
+        )
+
+    if status:
+        members = members.filter(status=status)
+
+    return render(request, "core/member_list.html", {"members": members})
+
+
+
+@login_required
+def member_create(request):
+    if request.method == "POST":
+        form = MemberForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "✅ Member added successfully.")
+            return redirect("member_list")
+    else:
+        form = MemberForm()
+    return render(request, "core/member_form.html", {"form": form})
+
+
+@login_required
+def member_detail(request, pk):
+    member = get_object_or_404(Member, pk=pk)
+    return render(request, "core/member_detail.html", {"member": member})
+
+
+@login_required
+def member_edit(request, pk):
+    member = get_object_or_404(Member, pk=pk)
+    if request.method == "POST":
+        form = MemberForm(request.POST, instance=member)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "✅ Member updated successfully.")
+            return redirect("member_detail", pk=member.pk)
+    else:
+        form = MemberForm(instance=member)
+    return render(request, "core/member_form.html", {"form": form, "member": member})
+
+
+@login_required
+def member_delete(request, pk):
+    member = get_object_or_404(Member, pk=pk)
+    if request.method == "POST":
+        member.delete()
+        messages.success(request, "🗑️ Member deleted.")
+        return redirect("member_list")
+    return render(request, "core/member_confirm_delete.html", {"member": member})
