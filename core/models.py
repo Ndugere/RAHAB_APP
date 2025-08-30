@@ -89,20 +89,6 @@ class Member(models.Model):
         return f"{self.member_no} - {self.full_name}"
 
 
-# loans/models.py
-class Loan(models.Model):
-    REDUCING = "REDUCING"
-    FLAT = "FLAT"
-    INTEREST_METHODS = [(REDUCING, "Reducing balance"), (FLAT, "Flat")]
-
-    member = models.ForeignKey(Member, on_delete=models.PROTECT)
-    principal = models.DecimalField(max_digits=14, decimal_places=2)
-    annual_rate = models.DecimalField(max_digits=5, decimal_places=2)  # percent
-    interest_method = models.CharField(max_length=16, choices=INTEREST_METHODS, default=REDUCING)
-    disbursed_on = models.DateField()
-    tenor_months = models.PositiveIntegerField()
-    status = models.CharField(max_length=20, default="ACTIVE")
-
 # savings/models.py (optional if you want explicit member savings ledger)
 class SavingsAccount(models.Model):
     member = models.ForeignKey(Member, on_delete=models.PROTECT)

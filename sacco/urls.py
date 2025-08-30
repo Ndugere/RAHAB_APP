@@ -46,4 +46,5 @@ urlpatterns = [
 
     # App URLs
     path('', include('core.urls')),
+    path("loans/", include("loans.urls")),
 ]
