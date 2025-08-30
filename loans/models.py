@@ -96,3 +96,5 @@ class LoanRepayment(models.Model):
 
     def __str__(self):
         return f"Repayment for Loan {self.loan.id} on {self.date}"
+
+

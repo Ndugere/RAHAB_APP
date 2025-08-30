@@ -110,3 +110,101 @@ class LoanForm(forms.ModelForm):
             "principal_account": forms.Select(attrs={"class": "form-select"}),
             "interest_account": forms.Select(attrs={"class": "form-select"}),
         }
+
+# loans/forms.py
+from django import forms
+from django.core.exceptions import ValidationError
+from .models import LoanSchedule, Loan
+
+class LoanScheduleForm(forms.ModelForm):
+    class Meta:
+        model = LoanSchedule
+        fields = [
+            "loan",
+            "installment_no",
+            "due_date",
+            "principal_due",
+            "interest_due",
+            "total_due",
+            "paid",
+        ]
+        widgets = {
+            "loan": forms.Select(attrs={
+                "class": "form-select",
+            }),
+            "installment_no": forms.NumberInput(attrs={
+                "class": "form-control",
+                "placeholder": "e.g. 1 for first installment"
+            }),
+            "due_date": forms.DateInput(attrs={
+                "type": "date",
+                "class": "form-control"
+            }),
+            "principal_due": forms.NumberInput(attrs={
+                "class": "form-control",
+                "placeholder": "Enter principal amount"
+            }),
+            "interest_due": forms.NumberInput(attrs={
+                "class": "form-control",
+                "placeholder": "Enter interest amount"
+            }),
+            "total_due": forms.NumberInput(attrs={
+                "class": "form-control",
+                "placeholder": "Auto-calculated if left blank"
+            }),
+            "paid": forms.CheckboxInput(attrs={
+                "class": "form-check-input"
+            }),
+        }
+        labels = {
+            "loan": "Loan",
+            "installment_no": "Installment Number",
+            "due_date": "Due Date",
+            "principal_due": "Principal Due",
+            "interest_due": "Interest Due",
+            "total_due": "Total Due",
+            "paid": "Mark as Paid",
+        }
+        help_texts = {
+            "loan": "Select the loan this schedule belongs to.",
+            "installment_no": "Unique number for this installment in the loan.",
+            "due_date": "Select the due date for this installment.",
+            "principal_due": "Amount of principal due for this installment.",
+            "interest_due": "Interest amount due for this installment.",
+            "total_due": "Will be calculated automatically if left blank.",
+            "paid": "Check if this installment has been fully paid.",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Optional: filter loans to active ones
+        self.fields["loan"].queryset = Loan.objects.all()
+
+    def clean(self):
+        cleaned = super().clean()
+        principal = cleaned.get("principal_due")
+        interest = cleaned.get("interest_due")
+        total = cleaned.get("total_due")
+
+        if principal is not None and interest is not None:
+            expected = principal + interest
+            if total is None:
+                cleaned["total_due"] = expected
+            elif total != expected:
+                raise ValidationError({
+                    "total_due": "Total due must equal principal + interest."
+                })
+        return cleaned
+
+    def clean_installment_no(self):
+        inst = self.cleaned_data["installment_no"]
+        loan = self.cleaned_data.get("loan") or getattr(self.instance, "loan", None)
+        if loan and inst:
+            exists = LoanSchedule.objects.filter(loan=loan, installment_no=inst)
+            if self.instance.pk:
+                exists = exists.exclude(pk=self.instance.pk)
+            if exists.exists():
+                raise ValidationError(
+                    "This installment number already exists for the selected loan."
+                )
+        return inst

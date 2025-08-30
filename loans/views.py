@@ -81,3 +81,84 @@ def loan_delete(request, pk):
         loan.delete()
         return redirect("loan_list")
     return render(request, "loans/loan_confirm_delete.html", {"loan": loan})
+
+
+# loans/views.py
+from django.urls import reverse_lazy, reverse
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.shortcuts import get_object_or_404
+from .models import LoanSchedule, Loan
+from .forms import LoanScheduleForm
+
+class LoanScheduleListView(ListView):
+    model = LoanSchedule
+    template_name = "loans/loanschedule_list.html"
+    context_object_name = "schedules"
+
+    def get_queryset(self):
+        # Optional: support filtering by loan with ?loan=<id>
+        qs = super().get_queryset().select_related("loan", "loan__member", "loan__product")
+        loan_id = self.request.GET.get("loan")
+        if loan_id:
+            qs = qs.filter(loan_id=loan_id)
+        return qs
+
+
+class LoanScheduleCreateView(CreateView):
+    model = LoanSchedule
+    form_class = LoanScheduleForm
+    template_name = "loans/loanschedule_form.html"
+
+    def get_success_url(self):
+        # Redirect back to list filtered by this loan for convenience
+        return f"{reverse('loanschedule_list')}?loan={self.object.loan_id}"
+
+
+class LoanScheduleUpdateView(UpdateView):
+    model = LoanSchedule
+    form_class = LoanScheduleForm
+    template_name = "loans/loanschedule_form.html"
+
+    def get_success_url(self):
+        return f"{reverse('loanschedule_list')}?loan={self.object.loan_id}"
+
+
+class LoanScheduleDeleteView(DeleteView):
+    model = LoanSchedule
+    template_name = "loans/confirm_delete.html"
+
+    def get_success_url(self):
+        return f"{reverse('loanschedule_list')}?loan={self.object.loan_id}"
+
+
+# Optional nested create under a loan: /loans/<loan_id>/schedules/add/
+class LoanScheduleCreateForLoanView(CreateView):
+    model = LoanSchedule
+    form_class = LoanScheduleForm
+    template_name = "loans/loanschedule_form.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.loan = get_object_or_404(Loan, pk=kwargs["loan_id"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial["loan"] = self.loan
+        # Suggest next installment number
+        last = self.loan.schedule.order_by("-installment_no").first()
+        initial["installment_no"] = (last.installment_no + 1) if last else 1
+        return initial
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        # Fix loan field to this loan, non-editable
+        form.fields["loan"].initial = self.loan
+        form.fields["loan"].disabled = True
+        return form
+
+    def form_valid(self, form):
+        form.instance.loan = self.loan
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return f"{reverse('loanschedule_list')}?loan={self.loan.id}"

@@ -14,4 +14,15 @@ urlpatterns = [
     path("loans/<int:pk>/delete/", views.loan_delete, name="loan_delete"),
 
 
+    # LoanSchedule CRUD
+    path("schedules/", views.LoanScheduleListView.as_view(), name="loanschedule_list"),
+    path("schedules/add/", views.LoanScheduleCreateView.as_view(), name="loanschedule_add"),
+    path("schedules/<int:pk>/edit/", views.LoanScheduleUpdateView.as_view(), name="loanschedule_edit"),
+    path("schedules/<int:pk>/delete/", views.LoanScheduleDeleteView.as_view(), name="loanschedule_delete"),
+
+    # Optional nested create under a specific loan
+    path("loans/<int:loan_id>/schedules/add/", views.LoanScheduleCreateForLoanView.as_view(),
+         name="loanschedule_add_for_loan"),
+
+
 ]
