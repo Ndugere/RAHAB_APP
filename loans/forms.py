@@ -208,3 +208,58 @@ class LoanScheduleForm(forms.ModelForm):
                     "This installment number already exists for the selected loan."
                 )
         return inst
+
+
+from django import forms
+from django.core.exceptions import ValidationError
+from .models import LoanRepayment, Loan
+
+class LoanRepaymentForm(forms.ModelForm):
+    class Meta:
+        model = LoanRepayment
+        fields = [
+            "loan",
+            "date",
+            "amount",
+            "principal_component",
+            "interest_component",
+            "journal_entry",
+        ]
+        widgets = {
+            "loan": forms.Select(attrs={"class": "form-select"}),
+            "date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "amount": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Total repayment amount"}),
+            "principal_component": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Principal portion"}),
+            "interest_component": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Interest portion"}),
+            "journal_entry": forms.Select(attrs={"class": "form-select"}),
+        }
+        labels = {
+            "loan": "Loan",
+            "date": "Repayment Date",
+            "amount": "Total Amount Paid",
+            "principal_component": "Principal Component",
+            "interest_component": "Interest Component",
+            "journal_entry": "Linked Journal Entry",
+        }
+        help_texts = {
+            "loan": "Select the loan this repayment is for.",
+            "amount": "Total amount received from the member.",
+            "principal_component": "Part of the payment that reduces the loan principal.",
+            "interest_component": "Part of the payment that covers interest.",
+            "journal_entry": "Optional: link to the accounting journal entry for this repayment.",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["loan"].queryset = Loan.objects.all()
+
+    def clean(self):
+        cleaned = super().clean()
+        principal = cleaned.get("principal_component") or 0
+        interest = cleaned.get("interest_component") or 0
+        amount = cleaned.get("amount") or 0
+
+        if principal + interest != amount:
+            raise ValidationError("Principal + Interest must equal the Total Amount Paid.")
+
+        return cleaned

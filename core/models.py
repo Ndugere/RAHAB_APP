@@ -88,8 +88,3 @@ class Member(models.Model):
     def __str__(self):
         return f"{self.member_no} - {self.full_name}"
 
-
-# savings/models.py (optional if you want explicit member savings ledger)
-class SavingsAccount(models.Model):
-    member = models.ForeignKey(Member, on_delete=models.PROTECT)
-    account = models.ForeignKey(Account, on_delete=models.PROTECT)  # tag as LIAB_MEMBERS_SAVINGS

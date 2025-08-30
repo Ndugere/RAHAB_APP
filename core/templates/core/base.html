@@ -74,27 +74,33 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'account_list' %}">Accounts</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'account_create' %}">Add Account</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'journal_entry_list' %}">Journal Entries</a></li>
+                        <ul class="navbar-nav me-auto">
+                            <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'account_list' %}">Accounts</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'account_create' %}">Add Account</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'journal_entry_list' %}">Journal Entries</a></li>
 
-                    <!-- New Members link -->
-                    <li class="nav-item"><a class="nav-link" href="{% url 'member_list' %}">Members</a></li>
+                            <!-- Members -->
+                            <li class="nav-item"><a class="nav-link" href="{% url 'member_list' %}">Members</a></li>
 
-                    <!-- New Loan Products link -->
-                    <li class="nav-item"><a class="nav-link" href="{% url 'loanproduct_list' %}">Loan Products</a></li>
+                            <!-- Loan Products -->
+                            <li class="nav-item"><a class="nav-link" href="{% url 'loanproduct_list' %}">Loan Products</a></li>
 
-                    <!-- New Loans link -->
-                    <li class="nav-item"><a class="nav-link" href="{% url 'loan_list' %}">Loans</a></li>
-                    <!-- New Loan Schedules link -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'loanschedule_list' %}">Loan Schedules</a>
-                    </li>
+                            <!-- Loans -->
+                            <li class="nav-item"><a class="nav-link" href="{% url 'loan_list' %}">Loans</a></li>
 
-                </ul>
+                            <!-- Loan Repayments -->
+                            <li class="nav-item"><a class="nav-link" href="{% url 'loanrepayment_list' %}">Loan Repayments</a></li>
 
+                            <!-- Loan Schedules -->
+                            <li class="nav-item"><a class="nav-link" href="{% url 'loanschedule_list' %}">Loan Schedules</a></li>
+
+                            <!-- Savings Accounts -->
+                            <li class="nav-item"><a class="nav-link" href="{% url 'savingsaccount_list' %}">Savings Accounts</a></li>
+
+                            <!-- Savings Transactions -->
+                            <li class="nav-item"><a class="nav-link" href="{% url 'savingstransaction_list' %}">Savings Transactions</a></li>
+                        </ul>
 
 
                 <ul class="navbar-nav ms-auto">

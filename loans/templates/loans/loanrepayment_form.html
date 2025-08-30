@@ -1,0 +1,33 @@
+{% extends "core/base.html" %}
+{% block title %}{{ view.object.pk|yesno:"Edit Loan Repayment,Add Loan Repayment" }}{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-success text-white">
+        <h4 class="mb-0">{{ view.object.pk|yesno:"Edit Loan Repayment,Add Loan Repayment" }}</h4>
+    </div>
+    <div class="card-body">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <div class="form-text">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{% url 'loanrepayment_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-success shadow-sm">
+                    <i class="bi bi-save"></i> Save
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

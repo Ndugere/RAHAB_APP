@@ -1,0 +1,19 @@
+{% extends "core/base.html" %}
+{% block title %}Delete Savings Account{% endblock %}
+
+{% block content %}
+<div class="alert alert-warning shadow-sm">
+    <h4 class="alert-heading">Confirm Delete</h4>
+    <p>
+        Are you sure you want to delete the savings account for 
+        <strong>{{ object.member.full_name }}</strong>?
+    </p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Yes, Delete
+        </button>
+        <a href="{% url 'savingsaccount_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "core/base.html" %}
+{% block title %}Savings Accounts{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold text-success">Savings Accounts</h2>
+    <a href="{% url 'savingsaccount_add' %}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Add Account
+    </a>
+</div>
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-success">
+            <tr>
+                <th>Member</th>
+                <th>Account</th>
+                <th>Opened On</th>
+                <th>Status</th>
+                <th>Balance</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for acc in accounts %}
+            <tr>
+                <td>{{ acc.member.full_name }}</td>
+                <td>{{ acc.account.name }}</td>
+                <td>{{ acc.opened_on }}</td>
+                <td>{{ acc.active|yesno:"Active,Inactive" }}</td>
+                <td>{{ acc.balance }}</td>
+                <td class="text-end">
+                    <a href="{% url 'savingsaccount_edit' acc.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                    <a href="{% url 'savingsaccount_delete' acc.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-muted">No savings accounts yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

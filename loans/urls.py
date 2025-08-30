@@ -25,4 +25,11 @@ urlpatterns = [
          name="loanschedule_add_for_loan"),
 
 
+    path("repayments/", views.LoanRepaymentListView.as_view(), name="loanrepayment_list"),
+    path("repayments/add/", views.LoanRepaymentCreateView.as_view(), name="loanrepayment_add"),
+    path("repayments/<int:pk>/edit/", views.LoanRepaymentUpdateView.as_view(), name="loanrepayment_edit"),
+    path("repayments/<int:pk>/delete/", views.LoanRepaymentDeleteView.as_view(), name="loanrepayment_delete"),
 ]
+
+
+

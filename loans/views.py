@@ -162,3 +162,36 @@ class LoanScheduleCreateForLoanView(CreateView):
 
     def get_success_url(self):
         return f"{reverse('loanschedule_list')}?loan={self.loan.id}"
+
+
+
+from django.urls import reverse_lazy
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from .models import LoanRepayment
+from .forms import LoanRepaymentForm
+
+class LoanRepaymentListView(ListView):
+    model = LoanRepayment
+    template_name = "loans/loanrepayment_list.html"
+    context_object_name = "repayments"
+    ordering = ["-date"]
+
+
+class LoanRepaymentCreateView(CreateView):
+    model = LoanRepayment
+    form_class = LoanRepaymentForm
+    template_name = "loans/loanrepayment_form.html"
+    success_url = reverse_lazy("loanrepayment_list")
+
+
+class LoanRepaymentUpdateView(UpdateView):
+    model = LoanRepayment
+    form_class = LoanRepaymentForm
+    template_name = "loans/loanrepayment_form.html"
+    success_url = reverse_lazy("loanrepayment_list")
+
+
+class LoanRepaymentDeleteView(DeleteView):
+    model = LoanRepayment
+    template_name = "loans/loanrepayment_confirm_delete.html"
+    success_url = reverse_lazy("loanrepayment_list")

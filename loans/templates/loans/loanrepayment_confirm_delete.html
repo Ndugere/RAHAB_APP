@@ -1,0 +1,16 @@
+{% extends "core/base.html" %}
+{% block title %}Delete Loan Repayment{% endblock %}
+
+{% block content %}
+<div class="alert alert-warning shadow-sm">
+    <h4 class="alert-heading">Confirm Delete</h4>
+    <p>Are you sure you want to delete the repayment for <strong>Loan #{{ object.loan.id }}</strong> on <strong>{{ object.date|date:"M d, Y" }}</strong>?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Yes, Delete
+        </button>
+        <a href="{% url 'loanrepayment_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

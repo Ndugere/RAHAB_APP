@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'core',
     'widget_tweaks',
     'loans',
+    'savings',
 ]
 
 MIDDLEWARE = [
