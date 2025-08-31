@@ -1,0 +1,83 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+    {% if receipt.type == "LOAN" %}
+        Loan Repayment Receipt
+    {% elif receipt.type == "SAVINGS" %}
+        Savings Deposit Receipt
+    {% else %}
+        Receipt
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="receipt-container mx-auto my-4 p-4 border rounded bg-white shadow-sm" style="max-width: 700px;">
+    <div class="header text-center border-bottom pb-2 mb-4">
+        <h1 class="text-success">{{ receipt.member.sacco_name|default:"SACCO Ltd" }}</h1>
+        <p class="lead">
+            {% if receipt.type == "LOAN" %}
+                Loan Repayment Receipt
+            {% elif receipt.type == "SAVINGS" %}
+                Savings Deposit Receipt
+            {% else %}
+                Receipt
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="section mb-3">
+        <h5 class="text-success">Receipt Info</h5>
+        <table class="table table-sm">
+            <tr><td><strong>Receipt No:</strong></td><td>{{ receipt.receipt_no }}</td></tr>
+            <tr><td><strong>Date:</strong></td><td>{{ receipt.issued_on|date:"F j, Y, g:i a" }}</td></tr>
+            <tr><td><strong>Issued By:</strong></td><td>{{ receipt.issued_by.get_full_name|default:"System" }}</td></tr>
+        </table>
+    </div>
+
+    <div class="section mb-3">
+        <h5 class="text-success">Member Info</h5>
+        <table class="table table-sm">
+            <tr><td><strong>Name:</strong></td><td>{{ receipt.member.full_name }}</td></tr>
+            <tr><td><strong>Payroll No:</strong></td><td>{{ receipt.member.payroll_number|default:"—" }}</td></tr>
+        </table>
+    </div>
+
+    <div class="section mb-3">
+        <h5 class="text-success">Payment Details</h5>
+        <table class="table table-sm">
+            <tr><td><strong>Amount Paid:</strong></td><td>KES {{ receipt.amount|floatformat:2 }}</td></tr>
+            <tr><td><strong>In Words:</strong></td><td>{{ receipt.amount|intword }} Kenya Shillings</td></tr>
+            <tr><td><strong>Payment Method:</strong></td><td>{{ receipt.payment_method|default:"—" }}</td></tr>
+
+            {% if receipt.type == "LOAN" and receipt.loan_repayment %}
+                <tr><td><strong>Loan Ref:</strong></td><td>#{{ receipt.loan_repayment.loan.id }}</td></tr>
+            {% elif receipt.type == "SAVINGS" and receipt.savings_transaction %}
+                <tr><td><strong>Savings Account:</strong></td><td>#{{ receipt.savings_transaction.savings_account.id }}</td></tr>
+                <tr><td><strong>Transaction Date:</strong></td><td>{{ receipt.savings_transaction.date }}</td></tr>
+            {% endif %}
+
+            <tr><td><strong>Journal Entry:</strong></td><td>{{ receipt.journal_entry.reference|default:"—" }}</td></tr>
+        </table>
+    </div>
+
+    <div class="section mb-4">
+        <h5 class="text-success">Notes</h5>
+        <p>{{ receipt.reference_note|default:"—" }}</p>
+    </div>
+
+    <div class="text-center mb-4">
+        <button class="btn btn-success d-print-none" onclick="window.print()">🖨️ Print Receipt</button>
+    </div>
+
+    <div class="text-center mb-4">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data={{ request.build_absolute_uri }}" alt="QR Code" class="img-fluid" />
+        <small class="text-muted d-block mt-2">Scan to verify or access digitally</small>
+    </div>
+
+    <div class="footer text-center mt-4 text-muted small">
+        Thank you for your payment. This receipt is computer-generated and valid without signature.
+    </div>
+</div>
+{% endblock %}

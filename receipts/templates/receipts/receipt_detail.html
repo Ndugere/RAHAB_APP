@@ -1,0 +1,59 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+    Receipt Details
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-success">Receipt #{{ receipt.receipt_no }}</h2>
+        <a href="{% url 'receipts:receipt_print' receipt.pk %}" class="btn btn-outline-success btn-sm d-print-none">
+            🖨️ Print View
+        </a>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h5 class="text-success">Member Info</h5>
+            <p><strong>Name:</strong> {{ receipt.member.full_name }}</p>
+            <p><strong>Payroll No:</strong> {{ receipt.member.payroll_number|default:"—" }}</p>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h5 class="text-success">Receipt Info</h5>
+            <p><strong>Issued On:</strong> {{ receipt.issued_on|date:"F j, Y, g:i a" }}</p>
+            <p><strong>Issued By:</strong> {{ receipt.issued_by.get_full_name|default:"System" }}</p>
+            <p><strong>Type:</strong> {{ receipt.type }}</p>
+            <p><strong>Amount:</strong> KES {{ receipt.amount|floatformat:2 }}</p>
+            <p><strong>In Words:</strong> {{ receipt.amount|intword }} Kenya Shillings</p>
+            <p><strong>Payment Method:</strong> {{ receipt.payment_method|default:"—" }}</p>
+
+            {% if receipt.type == "LOAN" and receipt.loan_repayment %}
+                <p><strong>Loan Ref:</strong> #{{ receipt.loan_repayment.loan.id }}</p>
+            {% elif receipt.type == "SAVINGS" and receipt.savings_transaction %}
+                <p><strong>Savings Account:</strong> #{{ receipt.savings_transaction.savings_account.id }}</p>
+                <p><strong>Transaction Date:</strong> {{ receipt.savings_transaction.date }}</p>
+            {% endif %}
+
+            <p><strong>Journal Entry:</strong> {{ receipt.journal_entry.reference|default:"—" }}</p>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h5 class="text-success">Notes</h5>
+            <p>{{ receipt.reference_note|default:"—" }}</p>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data={{ request.build_absolute_uri }}" alt="QR Code" class="img-fluid" />
+        <small class="text-muted d-block mt-2">Scan to verify or access digitally</small>
+    </div>
+</div>
+{% endblock %}

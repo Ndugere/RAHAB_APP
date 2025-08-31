@@ -48,4 +48,6 @@ urlpatterns = [
     path('', include('core.urls')),
     path("loans/", include("loans.urls")),
     path('savings/', include('savings.urls')),
+    path("receipts/", include("receipts.urls", namespace="receipts")),
+
 ]

@@ -220,14 +220,16 @@
     <!-- Main Layout -->
     <div class="main-wrapper">
         <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <div class="section-title">Operations</div>
-            <a href="{% url 'journal_entry_list' %}"><i class="bi bi-journal-text me-2"></i>Journal Entries</a>
-            <a href="{% url 'loanrepayment_list' %}"><i class="bi bi-cash-coin me-2"></i>Loan Repayments</a>
-            <a href="{% url 'loanschedule_list' %}"><i class="bi bi-calendar-check me-2"></i>Loan Schedules</a>
-            <a href="{% url 'savingsaccount_list' %}"><i class="bi bi-piggy-bank me-2"></i>Savings Accounts</a>
-            <a href="{% url 'savingstransaction_list' %}"><i class="bi bi-arrow-left-right me-2"></i>Savings Transactions</a>
-        </aside>
+            <aside class="sidebar" id="sidebar">
+                <div class="section-title">Operations</div>
+                <a href="{% url 'journal_entry_list' %}"><i class="bi bi-journal-text me-2"></i>Journal Entries</a>
+                <a href="{% url 'loanrepayment_list' %}"><i class="bi bi-cash-coin me-2"></i>Loan Repayments</a>
+                <a href="{% url 'loanschedule_list' %}"><i class="bi bi-calendar-check me-2"></i>Loan Schedules</a>
+                <a href="{% url 'savingsaccount_list' %}"><i class="bi bi-piggy-bank me-2"></i>Savings Accounts</a>
+                <a href="{% url 'savingstransaction_list' %}"><i class="bi bi-arrow-left-right me-2"></i>Savings Transactions</a>
+                <a href="{% url 'receipts:receipt_list' %}"><i class="bi bi-receipt me-2"></i>Receipts</a>
+            </aside>
+
 
         <!-- Content Area -->
         <main class="content-area">

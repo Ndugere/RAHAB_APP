@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'loans',
     'savings',
+    'django.contrib.humanize',
+    'receipts',
 ]
 
 MIDDLEWARE = [

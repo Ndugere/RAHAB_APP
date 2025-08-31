@@ -1,6 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import LoanProduct, Loan
 from .forms import LoanProductForm, LoanForm
+from django.urls import reverse_lazy, reverse
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.shortcuts import get_object_or_404
+from .models import LoanSchedule, Loan
+from .forms import LoanScheduleForm
+from django.urls import reverse_lazy
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from .models import LoanRepayment
+from .forms import LoanRepaymentForm
 
 
 def loanproduct_list(request):
@@ -84,11 +93,7 @@ def loan_delete(request, pk):
 
 
 # loans/views.py
-from django.urls import reverse_lazy, reverse
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from django.shortcuts import get_object_or_404
-from .models import LoanSchedule, Loan
-from .forms import LoanScheduleForm
+
 
 class LoanScheduleListView(ListView):
     model = LoanSchedule
@@ -165,10 +170,7 @@ class LoanScheduleCreateForLoanView(CreateView):
 
 
 
-from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from .models import LoanRepayment
-from .forms import LoanRepaymentForm
+
 
 class LoanRepaymentListView(ListView):
     model = LoanRepayment
@@ -177,11 +179,39 @@ class LoanRepaymentListView(ListView):
     ordering = ["-date"]
 
 
+
+
+from django.urls import reverse
+from django.views.generic.edit import CreateView
+from loans.models import LoanRepayment
+from loans.forms import LoanRepaymentForm
+from receipts.models import Receipt
+
 class LoanRepaymentCreateView(CreateView):
     model = LoanRepayment
     form_class = LoanRepaymentForm
     template_name = "loans/loanrepayment_form.html"
-    success_url = reverse_lazy("loanrepayment_list")
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        repayment = self.object
+
+        # Create receipt
+        receipt = Receipt.objects.create(
+            member=repayment.loan.member,
+            type=Receipt.LOAN,
+            amount=repayment.total_received(),
+            loan_repayment=repayment,
+            journal_entry=repayment.journal_entry,
+            payment_method="Mobile",  # You can make this dynamic later
+            issued_by=self.request.user,
+            reference_note=f"Auto-generated for Loan #{repayment.loan.id}"
+        )
+
+        # Redirect to printable receipt view
+        return redirect(reverse("receipt_print", kwargs={"pk": receipt.pk}))
+
+
 
 
 class LoanRepaymentUpdateView(UpdateView):
