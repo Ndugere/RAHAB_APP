@@ -1,5 +1,6 @@
 from django import forms
-from .models import LoanProduct, Loan
+from django.core.exceptions import ValidationError
+from .models import LoanSchedule, Loan, LoanProduct, LoanRepayment
 
 class LoanProductForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -111,10 +112,9 @@ class LoanForm(forms.ModelForm):
             "interest_account": forms.Select(attrs={"class": "form-select"}),
         }
 
-# loans/forms.py
-from django import forms
-from django.core.exceptions import ValidationError
-from .models import LoanSchedule, Loan
+
+
+
 
 class LoanScheduleForm(forms.ModelForm):
     class Meta:
@@ -210,9 +210,6 @@ class LoanScheduleForm(forms.ModelForm):
         return inst
 
 
-from django import forms
-from django.core.exceptions import ValidationError
-from .models import LoanRepayment, Loan
 
 class LoanRepaymentForm(forms.ModelForm):
     class Meta:
@@ -224,6 +221,8 @@ class LoanRepaymentForm(forms.ModelForm):
             "principal_component",
             "interest_component",
             "journal_entry",
+            "source",  # Newly added
+            "excess_routed_to_savings",  # Newly added
         ]
         widgets = {
             "loan": forms.Select(attrs={"class": "form-select"}),
@@ -232,6 +231,8 @@ class LoanRepaymentForm(forms.ModelForm):
             "principal_component": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Principal portion"}),
             "interest_component": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Interest portion"}),
             "journal_entry": forms.Select(attrs={"class": "form-select"}),
+            "source": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. Mobile, Manual"}),
+            "excess_routed_to_savings": forms.NumberInput(attrs={"class": "form-control", "readonly": True}),
         }
         labels = {
             "loan": "Loan",
@@ -240,6 +241,8 @@ class LoanRepaymentForm(forms.ModelForm):
             "principal_component": "Principal Component",
             "interest_component": "Interest Component",
             "journal_entry": "Linked Journal Entry",
+            "source": "Repayment Source",
+            "excess_routed_to_savings": "Excess Routed to Savings",
         }
         help_texts = {
             "loan": "Select the loan this repayment is for.",
@@ -247,19 +250,31 @@ class LoanRepaymentForm(forms.ModelForm):
             "principal_component": "Part of the payment that reduces the loan principal.",
             "interest_component": "Part of the payment that covers interest.",
             "journal_entry": "Optional: link to the accounting journal entry for this repayment.",
+            "source": "Optional tag for repayment origin (e.g. Mobile, Manual, Auto).",
+            "excess_routed_to_savings": "Amount redirected to savings due to overpayment.",
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["loan"].queryset = Loan.objects.all()
+        self.fields["source"].required = False
+        self.fields["excess_routed_to_savings"].required = False
 
     def clean(self):
         cleaned = super().clean()
         principal = cleaned.get("principal_component") or 0
         interest = cleaned.get("interest_component") or 0
         amount = cleaned.get("amount") or 0
+        loan = cleaned.get("loan")
 
-        if principal + interest != amount:
-            raise ValidationError("Principal + Interest must equal the Total Amount Paid.")
+        if principal + interest > amount:
+            raise ValidationError("Principal + Interest cannot exceed the Total Amount Paid.")
+
+        # Auto-calculate excess if loan is provided
+        if loan:
+            loan_balance = loan.get_balance()
+            excess = max(0, amount - loan_balance)
+            cleaned["excess_routed_to_savings"] = excess
 
         return cleaned
+

@@ -2,7 +2,6 @@ from django.db import models
 from django.utils import timezone
 from core.models import Account, JournalEntry, Member
 
-
 class SavingsAccount(models.Model):
     member = models.ForeignKey(Member, on_delete=models.PROTECT)
     account = models.ForeignKey(Account, on_delete=models.PROTECT)  # Should have ReportTag.LIAB_MEMBERS_SAVINGS
@@ -19,6 +18,23 @@ class SavingsAccount(models.Model):
         total_interest = self.transactions.filter(transaction_type='INTEREST').aggregate(models.Sum('amount'))['amount__sum'] or 0
         return total_deposits + total_interest - total_withdrawals
 
+    def deposit(self, amount, note=""):
+        from savings.models import SavingsTransaction  # Avoid circular import
+        SavingsTransaction.objects.create(
+            savings_account=self,
+            transaction_type='DEPOSIT',
+            amount=amount,
+            notes=note
+        )
+
+    def withdraw(self, amount, note=""):
+        from savings.models import SavingsTransaction
+        SavingsTransaction.objects.create(
+            savings_account=self,
+            transaction_type='WITHDRAWAL',
+            amount=amount,
+            notes=note
+        )
 
 class SavingsTransaction(models.Model):
     DEPOSIT = 'DEPOSIT'
@@ -36,6 +52,11 @@ class SavingsTransaction(models.Model):
     amount = models.DecimalField(max_digits=14, decimal_places=2)
     journal_entry = models.ForeignKey(JournalEntry, null=True, blank=True, on_delete=models.SET_NULL)
     notes = models.CharField(max_length=255, blank=True)
+    source = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Optional tag for transaction origin (e.g. 'Loan Overpayment', 'Mobile Deposit', 'Manual Entry')"
+    )
 
     class Meta:
         ordering = ['-date', '-id']

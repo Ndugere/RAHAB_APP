@@ -1,5 +1,6 @@
 # core/models.py
 from django.db import models
+from django.db.models import Sum
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
@@ -88,3 +89,38 @@ class Member(models.Model):
     def __str__(self):
         return f"{self.member_no} - {self.full_name}"
 
+    def get_financial_summary(self):
+        savings_accounts = self.savingsaccount_set.all()
+        loans = self.loan_set.all()
+
+        total_savings = sum(sa.balance for sa in savings_accounts)
+        total_loans = loans.aggregate(Sum('principal'))['principal__sum'] or 0
+        total_paid = sum(
+            loan.repayments.aggregate(Sum('amount'))['amount__sum'] or 0
+            for loan in loans
+        )
+        loan_balance = total_loans - total_paid
+
+        return {
+            "total_savings": total_savings,
+            "total_loans": total_loans,
+            "total_paid": total_paid,
+            "loan_balance": loan_balance,
+        }
+
+class MemberTransaction(models.Model):
+    member = models.ForeignKey(Member, related_name='transactions', on_delete=models.CASCADE)
+    date = models.DateField(default=timezone.now)
+    amount = models.DecimalField(max_digits=14, decimal_places=2)
+    description = models.CharField(max_length=255)
+    transaction_type = models.CharField(max_length=50)  # e.g. 'Savings Deposit', 'Loan Repayment'
+    source_model = models.CharField(max_length=50, blank=True)  # e.g. 'SavingsTransaction'
+    source_id = models.PositiveIntegerField(null=True, blank=True)  # ID of the source record
+    journal_entry = models.ForeignKey(JournalEntry, null=True, blank=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        ordering = ['-date', '-id']
+        unique_together = ('source_model', 'source_id')  
+
+    def __str__(self):
+        return f"{self.transaction_type} - {self.amount} on {self.date} ({self.member.full_name})"

@@ -12,11 +12,18 @@ class SavingsAccountForm(forms.ModelForm):
             'active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
-
 class SavingsTransactionForm(forms.ModelForm):
     class Meta:
         model = SavingsTransaction
-        fields = ['savings_account', 'date', 'transaction_type', 'amount', 'journal_entry', 'notes']
+        fields = [
+            'savings_account',
+            'date',
+            'transaction_type',
+            'amount',
+            'journal_entry',
+            'notes',
+            'source',  # 👈 New field added here
+        ]
         widgets = {
             'savings_account': forms.Select(attrs={'class': 'form-select'}),
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
@@ -24,4 +31,8 @@ class SavingsTransactionForm(forms.ModelForm):
             'amount': forms.NumberInput(attrs={'class': 'form-control'}),
             'journal_entry': forms.Select(attrs={'class': 'form-select'}),
             'notes': forms.TextInput(attrs={'class': 'form-control'}),
+            'source': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g. Mobile Deposit, Loan Overpayment',
+            }),  # 👈 Widget for the new field
         }

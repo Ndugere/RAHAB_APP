@@ -66,6 +66,33 @@ class Loan(models.Model):
     def __str__(self):
         return f"Loan #{self.id} - {self.member.full_name}"
 
+    def get_total_repaid(self):
+        """Sum of all repayments made toward this loan."""
+        return self.repayments.aggregate(
+            total=models.Sum('amount')
+        )['total'] or 0
+
+    def get_balance(self):
+        """Remaining loan balance (principal - total repaid)."""
+        return self.principal - self.get_total_repaid()
+
+    def is_fully_paid(self):
+        """Check if the loan is fully repaid."""
+        return self.get_balance() <= 0
+
+    def get_repayment_summary(self):
+        """Returns principal vs interest breakdown."""
+        agg = self.repayments.aggregate(
+            principal=models.Sum('principal_component'),
+            interest=models.Sum('interest_component')
+        )
+        return {
+            "principal_paid": agg['principal'] or 0,
+            "interest_paid": agg['interest'] or 0,
+            "total_paid": (agg['principal'] or 0) + (agg['interest'] or 0),
+            "balance": self.get_balance()
+        }
+
 
 class LoanSchedule(models.Model):
     """Planned repayment installments for a loan."""
@@ -92,63 +119,26 @@ class LoanRepayment(models.Model):
     amount = models.DecimalField(max_digits=14, decimal_places=2)
     principal_component = models.DecimalField(max_digits=14, decimal_places=2)
     interest_component = models.DecimalField(max_digits=14, decimal_places=2)
+    excess_routed_to_savings = models.DecimalField(
+        max_digits=14, decimal_places=2, default=0,
+        help_text="Amount from this repayment that was redirected to savings"
+    )
+    source = models.CharField(
+        max_length=50, blank=True,
+        help_text="Optional tag for repayment origin (e.g. 'Mobile', 'Manual', 'Auto')"
+    )
     journal_entry = models.ForeignKey(JournalEntry, null=True, blank=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return f"Repayment for Loan {self.loan.id} on {self.date}"
 
+    def total_applied_to_loan(self):
+        """Sum of principal and interest applied to loan."""
+        return self.principal_component + self.interest_component
 
-from django import forms
-from django.core.exceptions import ValidationError
-from .models import LoanRepayment, Loan
+    def total_received(self):
+        """Full amount received, including excess routed to savings."""
+        return self.amount + self.excess_routed_to_savings
 
-class LoanRepaymentForm(forms.ModelForm):
-    class Meta:
-        model = LoanRepayment
-        fields = [
-            "loan",
-            "date",
-            "amount",
-            "principal_component",
-            "interest_component",
-            "journal_entry",
-        ]
-        widgets = {
-            "loan": forms.Select(attrs={"class": "form-select"}),
-            "date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
-            "amount": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Total repayment amount"}),
-            "principal_component": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Principal portion"}),
-            "interest_component": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Interest portion"}),
-            "journal_entry": forms.Select(attrs={"class": "form-select"}),
-        }
-        labels = {
-            "loan": "Loan",
-            "date": "Repayment Date",
-            "amount": "Total Amount Paid",
-            "principal_component": "Principal Component",
-            "interest_component": "Interest Component",
-            "journal_entry": "Linked Journal Entry",
-        }
-        help_texts = {
-            "loan": "Select the loan this repayment is for.",
-            "amount": "Total amount received from the member.",
-            "principal_component": "Part of the payment that reduces the loan principal.",
-            "interest_component": "Part of the payment that covers interest.",
-            "journal_entry": "Optional: link to the accounting journal entry for this repayment.",
-        }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["loan"].queryset = Loan.objects.all()
-
-    def clean(self):
-        cleaned = super().clean()
-        principal = cleaned.get("principal_component") or 0
-        interest = cleaned.get("interest_component") or 0
-        amount = cleaned.get("amount") or 0
-
-        if principal + interest != amount:
-            raise ValidationError("Principal + Interest must equal the Total Amount Paid.")
-
-        return cleaned
 
