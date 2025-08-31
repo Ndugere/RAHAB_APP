@@ -218,10 +218,62 @@ def member_create(request):
     return render(request, "core/member_form.html", {"form": form})
 
 
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
+from core.models import Member, MemberTransaction  # adjust paths as needed
+from savings.models import SavingsTransaction, SavingsAccount
+from loans.models import Loan  # assuming you have a Loan model
+
 @login_required
 def member_detail(request, pk):
     member = get_object_or_404(Member, pk=pk)
-    return render(request, "core/member_detail.html", {"member": member})
+
+    # Savings summary
+    savings_accounts = member.savingsaccount_set.all()
+    savings_transactions = SavingsTransaction.objects.filter(savings_account__member=member)
+
+    total_deposits = savings_transactions.filter(transaction_type='DEPOSIT').aggregate(total=Sum('amount'))['total'] or 0
+    total_withdrawals = savings_transactions.filter(transaction_type='WITHDRAWAL').aggregate(total=Sum('amount'))['total'] or 0
+    total_interest = savings_transactions.filter(transaction_type='INTEREST').aggregate(total=Sum('amount'))['total'] or 0
+    savings_balance = total_deposits + total_interest - total_withdrawals
+
+    # Loan summary
+    loans = member.loan_set.all()
+    total_loan_principal = loans.aggregate(total=Sum('principal'))['total'] or 0
+    total_loan_balance = sum(loan.get_balance() for loan in loans)
+
+    # Unified ledger
+    member_transactions = member.transactions.all()  # Already ordered by Meta
+
+    # Recent activity
+    recent_savings = savings_transactions.order_by('-date', '-id')[:5]
+    recent_loans = loans.order_by('-disbursed_on')[:5]
+    recent_ledger = member_transactions[:10]
+
+    net_position = savings_balance - total_loan_balance
+
+
+    context = {
+
+        "member": member,
+        "savings_balance": savings_balance,
+        "total_deposits": total_deposits,
+        "total_withdrawals": total_withdrawals,
+        "total_interest": total_interest,
+        "loans": loans,
+        "total_loan_principal": total_loan_principal,
+        "total_loan_balance": total_loan_balance,
+        "member_transactions": member_transactions,
+        "recent_savings": recent_savings,
+        "recent_loans": recent_loans,
+        "net_position": net_position,
+        "recent_ledger": recent_ledger,
+    }
+
+    return render(request, "core/member_detail.html", context)
+
+
 
 
 @login_required

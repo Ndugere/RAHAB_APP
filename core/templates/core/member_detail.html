@@ -16,43 +16,129 @@
     </div>
 
     <!-- Profile Card -->
-    <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4">
         <div class="row g-0">
-            <!-- Left Column: Key Info -->
             <div class="col-md-6 bg-light p-4">
                 <h5 class="text-muted mb-3">Member Information</h5>
                 <dl class="row mb-0">
                     <dt class="col-sm-5">Membership No.</dt>
                     <dd class="col-sm-7">{{ member.member_no }}</dd>
-
                     <dt class="col-sm-5">ID Number</dt>
                     <dd class="col-sm-7">{{ member.id_number|default:"—" }}</dd>
-
                     <dt class="col-sm-5">Phone</dt>
                     <dd class="col-sm-7">{{ member.phone|default:"—" }}</dd>
-
                     <dt class="col-sm-5">Email</dt>
                     <dd class="col-sm-7">{{ member.email|default:"—" }}</dd>
-
                     <dt class="col-sm-5">Address</dt>
                     <dd class="col-sm-7">{{ member.address|default:"—" }}</dd>
-
                     <dt class="col-sm-5">Joined On</dt>
                     <dd class="col-sm-7">{{ member.joined_on|date:"M d, Y"|default:"—" }}</dd>
                 </dl>
             </div>
-
-            <!-- Right Column: Notes & Meta -->
             <div class="col-md-6 p-4">
                 <h5 class="text-muted mb-3">Notes</h5>
                 <p class="mb-4">{{ member.notes|linebreaks|default:"No notes available." }}</p>
-
                 <h6 class="text-muted">Record Metadata</h6>
                 <small class="text-secondary">
                     Created: {{ member.created_at|date:"M d, Y H:i" }}<br>
                     Updated: {{ member.updated_at|date:"M d, Y H:i" }}
                 </small>
             </div>
+        </div>
+    </div>
+
+    <!-- Financial Summary -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center p-3">
+                <h6 class="text-muted">Savings Balance</h6>
+                <h4 class="text-success fw-bold">KSh {{ savings_balance|floatformat:2 }}</h4>
+                <small class="text-secondary">Deposits: {{ total_deposits|floatformat:2 }} | Withdrawals: {{ total_withdrawals|floatformat:2 }} | Interest: {{ total_interest|floatformat:2 }}</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center p-3">
+                <h6 class="text-muted">Loan Principal</h6>
+                <h4 class="text-danger fw-bold">KSh {{ total_loan_principal|floatformat:2 }}</h4>
+                <small class="text-secondary">Outstanding Balance: KSh {{ total_loan_balance|floatformat:2 }}</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center p-3">
+                <h6 class="text-muted">Net Position</h6>
+                    <h4 class="fw-bold {% if net_position > 0 %}text-primary{% else %}text-warning{% endif %}">
+                        KSh {{ net_position|floatformat:2 }}
+                    </h4>
+
+                <small class="text-secondary">Savings minus Loans</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h5 class="text-muted mb-3">Recent Savings Transactions</h5>
+            <ul class="list-group shadow-sm">
+                {% for tx in recent_savings %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{{ tx.date|date:"M d, Y" }} — {{ tx.transaction_type }}</span>
+                    <span class="fw-bold {% if tx.transaction_type == 'WITHDRAWAL' %}text-danger{% else %}text-success{% endif %}">
+                        KSh {{ tx.amount|floatformat:2 }}
+                    </span>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-muted">No savings transactions found.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h5 class="text-muted mb-3">Recent Loans</h5>
+            <ul class="list-group shadow-sm">
+                {% for loan in recent_loans %}
+                <li class="list-group-item">
+                    <strong>Loan #{{ loan.id }}</strong> — {{ loan.product.name }}<br>
+                    <small>Disbursed: {{ loan.disbursed_on|date:"M d, Y" }} | Principal: KSh {{ loan.principal|floatformat:2 }} | Balance: KSh {{ loan.get_balance|floatformat:2 }}</small>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-muted">No loans found.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Unified Ledger -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white fw-bold text-muted">
+            <i class="bi bi-journal-text me-2"></i>Recent Member Transactions
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th class="text-end">Amount (KSh)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in recent_ledger %}
+                    <tr>
+                        <td>{{ tx.date|date:"M d, Y" }}</td>
+                        <td>{{ tx.transaction_type }}</td>
+                        <td>{{ tx.description }}</td>
+                        <td class="text-end fw-bold {% if tx.amount > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ tx.amount|floatformat:2 }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-muted text-center">No transactions found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 
