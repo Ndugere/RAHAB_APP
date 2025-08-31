@@ -75,6 +75,30 @@
         </div>
     </div>
 
+        <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 text-center p-3">
+                <h6 class="text-muted">Loan-to-Savings Ratio</h6>
+                <h4 class="fw-bold {% if loan_to_savings_ratio > 1 %}text-danger{% else %}text-success{% endif %}">
+                    {% if loan_to_savings_ratio %}
+                        {{ loan_to_savings_ratio|floatformat:2 }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </h4>
+                <small class="text-secondary">Lower is healthier</small>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 text-center p-3">
+                <h6 class="text-muted">Interest Earned</h6>
+                <h4 class="text-info fw-bold">KSh {{ total_interest|floatformat:2 }}</h4>
+                <small class="text-secondary">From savings account</small>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Recent Activity -->
     <div class="row mb-4">
         <div class="col-md-6">

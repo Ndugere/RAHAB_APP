@@ -76,6 +76,7 @@ class Member(models.Model):
 
     member_no = models.CharField(max_length=30, unique=True)
     full_name = models.CharField(max_length=120)
+    payroll_number = models.CharField(max_length=30, unique=True, null=True, blank=True)  # 👈 New field
     id_number = models.CharField(max_length=30, blank=True)
     phone = models.CharField(max_length=30, blank=True)
     email = models.EmailField(blank=True)

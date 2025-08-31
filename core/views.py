@@ -7,7 +7,10 @@ from .forms import AccountForm, JournalEntryForm, JournalLineFormSet, MemberForm
 from django.urls import reverse_lazy
 from django.contrib.auth.views import LoginView
 from django.db.models import Q
-
+from core.models import Member, MemberTransaction  # adjust paths as needed
+from savings.models import SavingsTransaction, SavingsAccount
+from loans.models import Loan  # assuming you have a Loan model
+from django.db.models import Sum
 
 # -----------------------------
 # ACCOUNT VIEWS
@@ -218,12 +221,6 @@ def member_create(request):
     return render(request, "core/member_form.html", {"form": form})
 
 
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
-from core.models import Member, MemberTransaction  # adjust paths as needed
-from savings.models import SavingsTransaction, SavingsAccount
-from loans.models import Loan  # assuming you have a Loan model
 
 @login_required
 def member_detail(request, pk):
@@ -235,6 +232,7 @@ def member_detail(request, pk):
 
     total_deposits = savings_transactions.filter(transaction_type='DEPOSIT').aggregate(total=Sum('amount'))['total'] or 0
     total_withdrawals = savings_transactions.filter(transaction_type='WITHDRAWAL').aggregate(total=Sum('amount'))['total'] or 0
+    total_interest = savings_transactions.filter(transaction_type='INTEREST').aggregate(total=Sum('amount'))['total'] or 0
     total_interest = savings_transactions.filter(transaction_type='INTEREST').aggregate(total=Sum('amount'))['total'] or 0
     savings_balance = total_deposits + total_interest - total_withdrawals
 
@@ -252,6 +250,8 @@ def member_detail(request, pk):
     recent_ledger = member_transactions[:10]
 
     net_position = savings_balance - total_loan_balance
+    loan_to_savings_ratio = total_loan_balance / savings_balance if savings_balance > 0 else None
+
 
 
     context = {
@@ -269,6 +269,7 @@ def member_detail(request, pk):
         "recent_loans": recent_loans,
         "net_position": net_position,
         "recent_ledger": recent_ledger,
+        "loan_to_savings_ratio": loan_to_savings_ratio,
     }
 
     return render(request, "core/member_detail.html", context)

@@ -148,6 +148,7 @@ class MemberForm(forms.ModelForm):
         model = Member
         fields = [
             "member_no",
+            "payroll_number",  # 👈 Added field
             "full_name",
             "id_number",
             "phone",
@@ -161,6 +162,11 @@ class MemberForm(forms.ModelForm):
             "member_no": forms.TextInput(attrs={
                 "class": "form-control",
                 "placeholder": "e.g. M-2025-001",
+                "autocomplete": "off"
+            }),
+            "payroll_number": forms.TextInput(attrs={  # 👈 New widget
+                "class": "form-control",
+                "placeholder": "e.g. PR-45678",
                 "autocomplete": "off"
             }),
             "full_name": forms.TextInput(attrs={
@@ -198,18 +204,12 @@ class MemberForm(forms.ModelForm):
         }
 
     def clean_member_no(self):
-        """
-        Ensure member_no is uppercase and trimmed for consistency.
-        """
         member_no = self.cleaned_data.get("member_no", "").strip().upper()
         if not member_no:
             raise forms.ValidationError("Member number is required.")
         return member_no
 
     def clean_phone(self):
-        """
-        Optional: Normalize phone numbers to a consistent format.
-        """
         phone = self.cleaned_data.get("phone", "").strip()
         if phone and not phone.startswith("+"):
             raise forms.ValidationError("Phone number must include country code, e.g. +254...")
