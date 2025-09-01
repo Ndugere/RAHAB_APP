@@ -1,21 +1,33 @@
+# Django core imports
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import LoanProduct, Loan
-from .forms import LoanProductForm, LoanForm
-from django.urls import reverse_lazy, reverse
+from django.urls import reverse, reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from django.shortcuts import get_object_or_404
-from .models import LoanSchedule, Loan
-from .forms import LoanScheduleForm
-from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from .models import LoanRepayment
-from .forms import LoanRepaymentForm
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
 
+# Local app imports
+from .models import (
+    LoanProduct,
+    Loan,
+    LoanSchedule,
+    LoanRepayment
+)
+from .forms import (
+    LoanProductForm,
+    LoanForm,
+    LoanScheduleForm,
+    LoanRepaymentForm
+)
 
+from django.views.generic.edit import CreateView
+from receipts.models import Receipt
+
+@login_required
 def loanproduct_list(request):
     products = LoanProduct.objects.all().order_by("name")
     return render(request, "loans/loanproduct_list.html", {"products": products})
 
+@login_required
 def loanproduct_create(request):
     if request.method == "POST":
         form = LoanProductForm(request.POST)
@@ -26,7 +38,7 @@ def loanproduct_create(request):
         form = LoanProductForm()
     return render(request, "loans/loanproduct_form.html", {"form": form})
 
-
+@login_required
 def loanproduct_edit(request, pk):
     product = get_object_or_404(LoanProduct, pk=pk)
     if request.method == "POST":
@@ -38,7 +50,7 @@ def loanproduct_edit(request, pk):
         form = LoanProductForm(instance=product)
     return render(request, "loans/loanproduct_form.html", {"form": form, "product": product})
 
-
+@login_required
 def loanproduct_delete(request, pk):
     product = get_object_or_404(LoanProduct, pk=pk)
     if request.method == "POST":
@@ -47,11 +59,12 @@ def loanproduct_delete(request, pk):
     return render(request, "loans/loanproduct_confirm_delete.html", {"product": product})
 
 
-
+@login_required
 def loan_list(request):
     loans = Loan.objects.select_related('member', 'product').order_by('-disbursed_on')
     return render(request, "loans/loan_list.html", {"loans": loans})
 
+@login_required
 def loan_create(request):
     if request.method == "POST":
         form = LoanForm(request.POST)
@@ -62,17 +75,15 @@ def loan_create(request):
         form = LoanForm()
     return render(request, "loans/loan_form.html", {"form": form})
 
+@login_required
 def loan_detail(request, pk):
     loan = get_object_or_404(Loan, pk=pk)
     return render(request, "loans/loan_detail.html", {"loan": loan})
 
 
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Loan
-from .forms import LoanForm
-
 # Existing views: loan_list, loan_create, loan_detail
 
+@login_required
 def loan_update(request, pk):
     loan = get_object_or_404(Loan, pk=pk)
     if request.method == "POST":
@@ -95,7 +106,7 @@ def loan_delete(request, pk):
 # loans/views.py
 
 
-class LoanScheduleListView(ListView):
+class LoanScheduleListView(LoginRequiredMixin, ListView):
     model = LoanSchedule
     template_name = "loans/loanschedule_list.html"
     context_object_name = "schedules"
@@ -109,7 +120,7 @@ class LoanScheduleListView(ListView):
         return qs
 
 
-class LoanScheduleCreateView(CreateView):
+class LoanScheduleCreateView(LoginRequiredMixin, CreateView):
     model = LoanSchedule
     form_class = LoanScheduleForm
     template_name = "loans/loanschedule_form.html"
@@ -119,7 +130,7 @@ class LoanScheduleCreateView(CreateView):
         return f"{reverse('loanschedule_list')}?loan={self.object.loan_id}"
 
 
-class LoanScheduleUpdateView(UpdateView):
+class LoanScheduleUpdateView(LoginRequiredMixin, UpdateView):
     model = LoanSchedule
     form_class = LoanScheduleForm
     template_name = "loans/loanschedule_form.html"
@@ -128,7 +139,7 @@ class LoanScheduleUpdateView(UpdateView):
         return f"{reverse('loanschedule_list')}?loan={self.object.loan_id}"
 
 
-class LoanScheduleDeleteView(DeleteView):
+class LoanScheduleDeleteView(LoginRequiredMixin, DeleteView):
     model = LoanSchedule
     template_name = "loans/confirm_delete.html"
 
@@ -137,7 +148,7 @@ class LoanScheduleDeleteView(DeleteView):
 
 
 # Optional nested create under a loan: /loans/<loan_id>/schedules/add/
-class LoanScheduleCreateForLoanView(CreateView):
+class LoanScheduleCreateForLoanView(LoginRequiredMixin, CreateView):
     model = LoanSchedule
     form_class = LoanScheduleForm
     template_name = "loans/loanschedule_form.html"
@@ -172,7 +183,7 @@ class LoanScheduleCreateForLoanView(CreateView):
 
 
 
-class LoanRepaymentListView(ListView):
+class LoanRepaymentListView(LoginRequiredMixin, ListView):
     model = LoanRepayment
     template_name = "loans/loanrepayment_list.html"
     context_object_name = "repayments"
@@ -180,14 +191,7 @@ class LoanRepaymentListView(ListView):
 
 
 
-
-from django.urls import reverse
-from django.views.generic.edit import CreateView
-from loans.models import LoanRepayment
-from loans.forms import LoanRepaymentForm
-from receipts.models import Receipt
-
-class LoanRepaymentCreateView(CreateView):
+class LoanRepaymentCreateView(LoginRequiredMixin, CreateView):
     model = LoanRepayment
     form_class = LoanRepaymentForm
     template_name = "loans/loanrepayment_form.html"
@@ -214,14 +218,14 @@ class LoanRepaymentCreateView(CreateView):
 
 
 
-class LoanRepaymentUpdateView(UpdateView):
+class LoanRepaymentUpdateView(LoginRequiredMixin, UpdateView):
     model = LoanRepayment
     form_class = LoanRepaymentForm
     template_name = "loans/loanrepayment_form.html"
     success_url = reverse_lazy("loanrepayment_list")
 
 
-class LoanRepaymentDeleteView(DeleteView):
+class LoanRepaymentDeleteView(LoginRequiredMixin, DeleteView):
     model = LoanRepayment
     template_name = "loans/loanrepayment_confirm_delete.html"
     success_url = reverse_lazy("loanrepayment_list")

@@ -1,47 +1,53 @@
-from django.urls import reverse_lazy
+# Django core imports
+from django.urls import reverse, reverse_lazy
+from django.shortcuts import redirect
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+
+# Local app imports
 from .models import SavingsAccount, SavingsTransaction
 from .forms import SavingsAccountForm, SavingsTransactionForm
+
+# Cross-app imports
 from receipts.models import Receipt
-from django.shortcuts import redirect
-from django.urls import reverse
 
 # Savings Account Views
-class SavingsAccountListView(ListView):
+class SavingsAccountListView(LoginRequiredMixin, ListView):
     model = SavingsAccount
     template_name = "savings/savingsaccount_list.html"
     context_object_name = "accounts"
 
 
-class SavingsAccountCreateView(CreateView):
+class SavingsAccountCreateView(LoginRequiredMixin, CreateView):
     model = SavingsAccount
     form_class = SavingsAccountForm
     template_name = "savings/savingsaccount_form.html"
     success_url = reverse_lazy("savingsaccount_list")
 
 
-class SavingsAccountUpdateView(UpdateView):
+class SavingsAccountUpdateView(LoginRequiredMixin, UpdateView):
     model = SavingsAccount
     form_class = SavingsAccountForm
     template_name = "savings/savingsaccount_form.html"
     success_url = reverse_lazy("savingsaccount_list")
 
 
-class SavingsAccountDeleteView(DeleteView):
+class SavingsAccountDeleteView(LoginRequiredMixin, DeleteView):
     model = SavingsAccount
     template_name = "savings/savingsaccount_confirm_delete.html"
     success_url = reverse_lazy("savingsaccount_list")
 
 
 # Savings Transaction Views
-class SavingsTransactionListView(ListView):
+class SavingsTransactionListView(LoginRequiredMixin, ListView):
     model = SavingsTransaction
     template_name = "savings/savingstransaction_list.html"
     context_object_name = "transactions"
 
 
 
-class SavingsTransactionCreateView(CreateView):
+class SavingsTransactionCreateView(LoginRequiredMixin, CreateView):
     model = SavingsTransaction
     form_class = SavingsTransactionForm
     template_name = "savings/savingstransaction_form.html"
@@ -69,14 +75,13 @@ class SavingsTransactionCreateView(CreateView):
 
 
 
-class SavingsTransactionUpdateView(UpdateView):
+class SavingsTransactionUpdateView(LoginRequiredMixin, UpdateView):
     model = SavingsTransaction
     form_class = SavingsTransactionForm
     template_name = "savings/savingstransaction_form.html"
     success_url = reverse_lazy("savingstransaction_list")
 
-
-class SavingsTransactionDeleteView(DeleteView):
+class SavingsTransactionDeleteView(LoginRequiredMixin, DeleteView):
     model = SavingsTransaction
     template_name = "savings/savingstransaction_confirm_delete.html"
     success_url = reverse_lazy("savingstransaction_list")

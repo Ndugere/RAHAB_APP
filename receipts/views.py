@@ -1,13 +1,22 @@
 from django.views.generic import DetailView
-from receipts.models import Receipt
 from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
 from receipts.models import Receipt
 
+# -----------------------------
+# Class-Based View
+# -----------------------------
 
-class ReceiptPrintView(DetailView):
+class ReceiptPrintView(LoginRequiredMixin, DetailView):
     model = Receipt
     template_name = "receipts/receipt_print.html"
 
+# -----------------------------
+# Function-Based Views
+# -----------------------------
+
+@login_required
 def receipt_list(request):
     """
     Displays a list of all receipts, ordered by most recent.
@@ -26,6 +35,7 @@ def receipt_list(request):
     return render(request, "receipts/receipt_list.html", context)
 
 
+@login_required
 def receipt_detail(request, pk):
     """
     Displays the details of a single receipt.

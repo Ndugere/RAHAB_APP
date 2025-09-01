@@ -2,9 +2,6 @@ from django.db import models
 from django.utils import timezone
 from core.models import Member, Account, JournalEntry, ReportTag
 
-
-from django.db import models
-
 class LoanProduct(models.Model):
     """Defines a loan type with default terms."""
     REDUCING = "REDUCING"
